@@ -26,8 +26,8 @@ pub unsafe extern fn memcpy(dest: *mut u8, src: *mut u8, n: usize) -> *mut u8 {
 pub unsafe extern fn memcmp(s1: *mut u8, s2: *const u8, n: usize) -> i32 {
     let mut i = 0;
     while i < n {
-        let a = *s1.offset(n as isize);
-        let b = *s2.offset(n as isize);
+        let a = *s1.offset(i as isize);
+        let b = *s2.offset(i as isize);
         if a != b {
             return (a - b) as i32;
         }
