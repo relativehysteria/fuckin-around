@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# TODO:
+#    Get the #!ipxe shit working. :|
+
+tftp="./netboot"
+bootloader="/bootloader.0"
+
+sudo qemu-system-x86_64                                     \
+    -cpu host                                               \
+    -accel kvm                                              \
+    -device virtio-net-pci,netdev=n1                        \
+    -netdev user,id=n1,tftp="$tftp",bootfile=/bootloader.0  \
+    -drive file=virtio-net.dsk,format=raw,index=0,if=floppy \
+    -display gtk                                            \
+    -m 4096                                                 \
+    -chardev pty,id=serial1                                 \
+    -boot na
