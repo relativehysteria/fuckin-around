@@ -14,7 +14,6 @@ entry:
     ; DS is unpredictable after boot -- set it to 0
     xor ax, ax
     mov ds, ax
-    mov gs, ax
 
     ; Load the GDT
     lgdt [gdt]
