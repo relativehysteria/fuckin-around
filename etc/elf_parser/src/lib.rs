@@ -14,7 +14,7 @@ pub struct ElfParser<'a> {
     /// Offset to where the program header table begins
     phdr_off: usize,
 
-    /// Size of a program header table entry size
+    /// Size of a program header table entry
     phent_size: u16,
 
     /// Number of program headers in this file
