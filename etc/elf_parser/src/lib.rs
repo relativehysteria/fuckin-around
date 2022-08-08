@@ -38,7 +38,7 @@ impl<'a> ElfParser<'a> {
 
         // Get the bitness of the file
         let bitness = *bytes.get(4)?;
-        if bitness != 1 || bitness != 2 { return None; }
+        if bitness != 1 && bitness != 2 { return None; }
 
         // Verify the endianness
         if bytes.get(5) != Some(&1) { return None; }
