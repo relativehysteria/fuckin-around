@@ -2,6 +2,7 @@
 //!
 //! Requirements:
 //!     nasm
+//!     ld.lld
 
 use std::path::Path;
 use std::process::Command;
@@ -72,5 +73,13 @@ fn main() {
         .expect("Couldn't read the bootloader binary.");
 
     // Parse the bootloader bytes
-    let parsed_bootloader = ElfParser::parse(&bootloader_bin);
+    let parsed_bootloader = ElfParser::parse(&bootloader_bin)
+        .expect("Couldn't parse the bootloader binary.");
+    parsed_bootloader.headers(|vaddr, memsz, raw_bytes, r, w, x| {
+        println!("0x{vaddr:x} 0x{memsz:x} {}{}{} {raw_bytes:x?}",
+                 if r { "r" } else { "-" },
+                 if w { "w" } else { "-" },
+                 if r { "x" } else { "-" });
+        Some(())
+    });
 }
