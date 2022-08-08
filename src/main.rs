@@ -7,7 +7,8 @@ use std::path::Path;
 use std::process::Command;
 use std::fs::create_dir_all;
 use std::env::args;
-use std::process::ExitStatus;
+
+use elf_parser::ElfParser;
 
 fn main() {
     // Get the paths to our working directories
@@ -22,12 +23,15 @@ fn main() {
             .status();
 
         // Clean the bootloader directory
-        let bootloader = cargo_clean(bootloader_path);
+        let bootloader = Command::new("cargo")
+            .current_dir(bootloader_path)
+            .arg("clean")
+            .status();
 
         println!("Cleaned directories:");
         println!("\t{netboot_path:?} = {netboot:?}");
         println!("\t{bootloader_path:?} = {bootloader:?}");
-        std::process::exit(0);
+        return;
     }
 
     // Create the needed directories.
@@ -51,25 +55,22 @@ fn main() {
         .expect("Couldn't assemble the stage0.");
 
     // Build the bootloader
-    cargo_build(&bootloader_path)
-        .expect("Couldn't build the bootloader");
-}
-
-fn cargo_build<T: AsRef<Path>>(cargo_dir: T) -> std::io::Result<ExitStatus> {
-    #[cfg(debug_assertions)]
-    let args = ["rustc", "--", "-C", "link-arg=-nostartfiles"];
-    #[cfg(not(debug_assertions))]
-    let args = ["rustc", "--release", "--", "-C", "link-arg=-nostartfiles"];
-
+    let target = "i586-unknown-linux-gnu";
     Command::new("cargo")
-        .current_dir(cargo_dir)
-        .args(args)
+        .current_dir(bootloader_path)
+        .args(["build", "--release"])
         .status()
-}
+        .expect("Couldn't build the bootloader.");
 
-fn cargo_clean<T: AsRef<Path>>(cargo_dir: T) -> std::io::Result<ExitStatus> {
-    Command::new("cargo")
-        .current_dir(cargo_dir)
-        .arg("clean")
-        .status()
+    // Read the bootloader bytes
+    let bootloader_bin = bootloader_path
+        .join("target")
+        .join(target)
+        .join("release")
+        .join("bootloader");
+    let bootloader_bin = std::fs::read(bootloader_bin)
+        .expect("Couldn't read the bootloader binary.");
+
+    // Parse the bootloader bytes
+    let parsed_bootloader = ElfParser::parse(&bootloader_bin);
 }

@@ -3,5 +3,12 @@
 version = 3
 
 [[package]]
+name = "elf_parser"
+version = "0.1.0"
+
+[[package]]
 name = "the_first_one"
 version = "0.1.0"
+dependencies = [
+ "elf_parser",
+]
