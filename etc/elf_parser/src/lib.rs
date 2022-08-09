@@ -10,11 +10,11 @@ pub const BITNESS_32B: u8 = 1;
 /// Signifies that a file is aimed at 64-bit systems
 pub const BITNESS_64B: u8 = 2;
 
-/// Signifies that a segment is readable
+/// Signifies that a segment is executable
 pub const SEGMENT_EXECUTABLE: u32 = 1 << 0;
 /// Signifies that a segment is writable
 pub const SEGMENT_WRITABLE:   u32 = 1 << 1;
-/// Signifies that a segment is executable
+/// Signifies that a segment is readable
 pub const SEGMENT_READABLE:   u32 = 1 << 2;
 
 /// Read bytes and little-endian interpret them as a given type
