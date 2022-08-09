@@ -134,11 +134,11 @@ impl<'a> ElfParser<'a> {
             }
 
             // Get the segment flags, offsets and sizes
-            let mut flags:    u32 = 0;
-            let mut f_off:  usize = 0;
-            let mut f_sz:   usize = 0;
-            let mut vaddr:  usize = 0;
-            let mut mem_sz: usize = 0;
+            let flags:    u32;
+            let f_off:  usize;
+            let f_sz:   usize;
+            let vaddr:  usize;
+            let mem_sz: usize;
 
             if self.bitness == BITNESS_32B {
                 f_off  = get_bytes!(u32, bytes, seg_off +0x4).try_into().ok()?;
