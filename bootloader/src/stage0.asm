@@ -39,6 +39,7 @@ protected_mode_entry:
     mov fs, ax
     mov ss, ax
 
+    ; entry_point is defined at build time
     jmp entry_point
 
 ;-------------------------------------------------------------------------------
@@ -60,6 +61,7 @@ gdt:
 
 ;-------------------------------------------------------------------------------
 
+; base_address is defined at build time
 times ((base_address - 0x7c00) - ($-$$)) db 0x0
 
 incbin "build/bootloader"
