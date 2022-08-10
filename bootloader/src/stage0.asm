@@ -39,8 +39,7 @@ protected_mode_entry:
     mov fs, ax
     mov ss, ax
 
-    cli
-    hlt
+    jmp entry_point
 
 ;-------------------------------------------------------------------------------
 
@@ -60,3 +59,7 @@ gdt:
     dd gdt_base
 
 ;-------------------------------------------------------------------------------
+
+times ((base_address - 0x7c00) - ($-$$)) db 0x0
+
+incbin "build/bootloader"

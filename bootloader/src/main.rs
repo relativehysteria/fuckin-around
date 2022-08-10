@@ -11,6 +11,7 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 #[no_mangle]
-pub fn _start() -> ! {
+#[export_name="_start"]
+pub fn entry() -> ! {
     panic!();
 }

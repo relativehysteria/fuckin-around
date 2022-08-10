@@ -12,7 +12,7 @@ use std::env::args;
 use elf_parser::ElfParser;
 
 /// Maximum stage0/bootloader size allowed by PXE
-const MAX_BOOTLOADER_SIZE: usize = 32 * 1024;
+const MAX_BOOTLOADER_SIZE: u64 = 32 * 1024;
 
 /// Extract LOADable segments out of an elf file and flatten them into a single
 /// image.
@@ -140,23 +140,15 @@ fn main() {
     let (flat_entry, flat_base, flat_bytes) = flatten_elf(bootloader_bin)
         .expect("Couldn't flatten the bootloader image.");
 
-    // Print some info about the bootloader
+    // Print some info about the flattened bootloader
     println!("Flattened Bootloader Image:");
-    println!("\tEntry Point:  0x{flat_entry:x}");
-    println!("\tBase Address: 0x{flat_base:x}");
-    println!("\tImage Length: 0x{:x} ({})", flat_bytes.len(), flat_bytes.len());
-
-    // Do not go over the PXE limit
-    let used_space = (MAX_BOOTLOADER_SIZE as f64) / (flat_bytes.len() as f64);
-    let used_space = 100. / used_space;
-    println!("\tUsed Space:   {:0.2}%", used_space);
-    if flat_bytes.len() >= MAX_BOOTLOADER_SIZE {
-        println!("Maximum bootloader size exceeded! Aborting!");
-        std::process::exit(1);
-    }
+    println!("    Entry Point:      0x{flat_entry:x}");
+    println!("    Base Address:     0x{flat_base:x}");
+    println!("    Flat Image Size:  0x{:x} ({})",
+             flat_bytes.len(), flat_bytes.len());
 
     // Write the bootloader to the build directory
-    std::fs::write(build_path.join("bootloader"), flat_bytes)
+    std::fs::write(build_path.join("bootloader"), &flat_bytes)
         .expect("Couldn't write the flat bootloader image to the file system.");
 
     // Get the path to the stage0 assembly and the assembled binary
@@ -171,7 +163,29 @@ fn main() {
 
     // Assemble the stage0
     Command::new("nasm")
-        .args(["-f", "bin", "-o", stage0_bin, stage0_path])
+        .args(["-f", "bin",
+              &format!("-Dentry_point=0x{flat_entry:x}"),
+              &format!("-Dbase_address=0x{flat_base:x}"),
+              "-o", stage0_bin, stage0_path])
         .status()
         .expect("Couldn't assemble the stage0.");
+
+    // Print some info about the whole bootloader binary.
+    let bloader_meta = std::fs::metadata(stage0_bin)
+        .expect("Couldn't get the bootloader file system metadata.");
+    println!("    Whole Image Size: 0x{:x} ({})",
+             bloader_meta.len(), bloader_meta.len());
+
+    // Don't go over the PXE limit
+    let used_space = (MAX_BOOTLOADER_SIZE as f64) / (bloader_meta.len() as f64);
+    let used_space = 100. / used_space;
+    println!("    Used PXE space:   {:0.2}%", used_space);
+    if bloader_meta.len() >= MAX_BOOTLOADER_SIZE {
+        println!("Maximum bootloader size exceeded! Aborting!");
+        std::process::exit(1);
+    }
+
+    // Copy it to the netboot directory
+    std::fs::copy(stage0_bin, netboot_path.join("bootloader.0"))
+        .expect("Couldn't copy the bootloader to the netboot directory.");
 }
