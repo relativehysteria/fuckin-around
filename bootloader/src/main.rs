@@ -13,5 +13,11 @@ fn panic(_info: &PanicInfo) -> ! {
 #[no_mangle]
 #[export_name="_start"]
 pub fn entry() -> ! {
+    unsafe {
+        for i in 0..(80*25) {
+            core::ptr::write((0xb8000 as *mut u16).offset(i), 0x0F41);
+        }
+        core::arch::asm!("cli", "hlt");
+    }
     panic!();
 }
