@@ -3,19 +3,6 @@
 version = 3
 
 [[package]]
-name = "bootloader"
-version = "0.1.0"
-dependencies = [
- "core_reqs",
- "cpu",
- "serial_driver",
-]
-
-[[package]]
-name = "core_reqs"
-version = "0.1.0"
-
-[[package]]
 name = "cpu"
 version = "0.1.0"
 

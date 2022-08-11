@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 core_reqs = { path = "../etc/core_reqs" }
+cpu = { path = "../etc/cpu" }
+serial_driver = { path = "../etc/serial_driver" }
 
 [profile.release]
 panic = "abort"

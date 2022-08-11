@@ -39,6 +39,9 @@ protected_mode_entry:
     mov fs, ax
     mov ss, ax
 
+    ; Set up a stack
+    mov esp, 0x7c00
+
     ; entry_point is defined at build time
     jmp entry_point
 
