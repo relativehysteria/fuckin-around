@@ -1,3 +1,0 @@
-#!/bin/sh
-
-sudo python -m pypxe.server --verbose all
