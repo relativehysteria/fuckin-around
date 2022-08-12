@@ -11,21 +11,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bootloader"
-version = "0.1.0"
-dependencies = [
- "boot_kern_common",
- "core_reqs",
- "cpu",
- "serial_driver",
- "spinlock",
-]
-
-[[package]]
-name = "core_reqs"
-version = "0.1.0"
-
-[[package]]
 name = "cpu"
 version = "0.1.0"
 
