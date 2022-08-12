@@ -15,7 +15,7 @@ fn panic(_info: &PanicInfo) -> ! {
     unsafe {
         let serial = &mut *BOOT_KERN.serial.shatter();
         if let Some(serial) = serial {
-            serial.write(b"\nPANIC!\n");
+            serial.write(b"\nPANIC!\n\n");
         }
         core::arch::asm!("cli", "hlt");
         loop { spin_loop(); }
