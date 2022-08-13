@@ -1,4 +1,5 @@
-[org 0x7c00]
+; origin is defined at build time and should be usually set to 0x7c00
+[org origin]
 [bits 16]
 
 entry:
@@ -40,7 +41,7 @@ protected_mode_entry:
     mov ss, ax
 
     ; Set up a stack
-    mov esp, 0x7c00
+    mov esp, origin
 
     ; entry_point is defined at build time
     jmp entry_point
@@ -64,6 +65,6 @@ gdt:
 ;-------------------------------------------------------------------------------
 
 ; base_address is defined at build time
-times ((base_address - 0x7c00) - ($-$$)) db 0x0
+times ((base_address - origin) - ($-$$)) db 0x0
 
 incbin "build/bootloader"

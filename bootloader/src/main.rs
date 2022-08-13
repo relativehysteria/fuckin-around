@@ -4,6 +4,7 @@
 #![feature(panic_info_message)]
 
 extern crate core_reqs;
+mod realmode;
 
 use core::panic::PanicInfo;
 use core::hint::spin_loop;
@@ -52,5 +53,6 @@ extern fn entry() -> ! {
         let mut serial = BOOT_KERN.serial.lock();
         *serial = Some(Serial::init());
     }
+    print!("Serial initialized!\n");
     panic!();
 }

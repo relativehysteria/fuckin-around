@@ -14,6 +14,9 @@ use elf_parser::ElfParser;
 /// Maximum stage0/bootloader size allowed by PXE
 const MAX_BOOTLOADER_SIZE: u64 = 32 * 1024;
 
+/// Execution origin of the stage0 binary
+const STAGE0_ORIGIN: u64 = 0x7c00;
+
 /// Extract LOADable segments out of an elf file and flatten them into a single
 /// image.
 ///
@@ -123,6 +126,24 @@ fn main() {
     create_dir_all(netboot_path.clone()).unwrap();
     create_dir_all(build_path.clone()).unwrap();
 
+    // Get the path to the realmode.asm assembly and the assembled binary
+    let realmode_bin  = build_path.clone().join("realmode");
+    let realmode_path = bootloader_path.join("src").join("realmode.asm");
+
+    // Convert the paths to strings
+    let realmode_bin = realmode_bin.to_str()
+        .expect("Couldn't get the path to the realmode output directory");
+    let realmode_path = realmode_path.to_str()
+        .expect("Couldn't find the path to the realmode assembly.");
+
+    // Assemble the realmode
+    Command::new("nasm")
+        .args(["-f", "elf32",
+              &format!("-Dorigin=0x{STAGE0_ORIGIN:x}"),
+              "-o", realmode_bin, realmode_path])
+        .status()
+        .expect("Couldn't assemble the realmode.");
+
     // Build the bootloader
     let target = "i586-unknown-linux-gnu";
     Command::new("cargo")
@@ -166,6 +187,7 @@ fn main() {
         .args(["-f", "bin",
               &format!("-Dentry_point=0x{flat_entry:x}"),
               &format!("-Dbase_address=0x{flat_base:x}"),
+              &format!("-Dorigin=0x{STAGE0_ORIGIN:x}"),
               "-o", stage0_bin, stage0_path])
         .status()
         .expect("Couldn't assemble the stage0.");
