@@ -2,9 +2,12 @@
 #![no_main]
 
 #![feature(panic_info_message)]
+#![feature(alloc_error_handler)]
 
+extern crate alloc;
 extern crate core_reqs;
 mod realmode;
+mod mm;
 
 use core::panic::PanicInfo;
 use core::hint::spin_loop;
@@ -54,5 +57,10 @@ extern fn entry() -> ! {
         *serial = Some(Serial::init());
     }
     print!("Serial initialized!\n");
+
+    // Initialize the primitive memory manager
+    mm::init();
+    print!("Memory manager initialized!\n");
+
     panic!();
 }

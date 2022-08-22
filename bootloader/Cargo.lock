@@ -6,6 +6,7 @@ version = 3
 name = "boot_kern_common"
 version = "0.1.0"
 dependencies = [
+ "range_set",
  "serial_driver",
  "spinlock",
 ]
@@ -17,8 +18,8 @@ dependencies = [
  "boot_kern_common",
  "core_reqs",
  "cpu",
+ "range_set",
  "serial_driver",
- "spinlock",
 ]
 
 [[package]]
@@ -27,6 +28,10 @@ version = "0.1.0"
 
 [[package]]
 name = "cpu"
+version = "0.1.0"
+
+[[package]]
+name = "range_set"
 version = "0.1.0"
 
 [[package]]

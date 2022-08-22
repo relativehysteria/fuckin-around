@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-core_reqs = { path = "../etc/core_reqs" }
 cpu = { path = "../etc/cpu" }
-spinlock = { path = "../etc/spinlock" }
+core_reqs = { path = "../etc/core_reqs" }
+range_set = { path = "../etc/range_set" }
 serial_driver = { path = "../etc/serial_driver" }
 boot_kern_common = { path = "../etc/boot_kern_common" }
 
