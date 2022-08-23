@@ -21,5 +21,11 @@ pub struct RegisterState {
 }
 
 extern {
+    /// Invokes a real mode software interrupt `interrupt_number` with a given
+    /// register state.
     pub fn invoke(interrupt_number: u8, registers: *mut RegisterState);
+
+    /// Invokes a PXE routine `pxe_opcode`.
+    pub fn pxe_invoke(entry_segment: u16, entry_offset: u16, pxe_opcode: u16,
+                      parameter_segment: u16, parameter_offset: u16);
 }

@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 cpu = { path = "../etc/cpu" }
+spinlock = { path = "../etc/spinlock" }
 core_reqs = { path = "../etc/core_reqs" }
 range_set = { path = "../etc/range_set" }
 serial_driver = { path = "../etc/serial_driver" }

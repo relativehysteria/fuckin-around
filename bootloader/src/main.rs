@@ -8,6 +8,7 @@ extern crate alloc;
 extern crate core_reqs;
 mod realmode;
 mod mm;
+mod pxe;
 
 use core::panic::PanicInfo;
 use core::hint::spin_loop;
@@ -48,6 +49,7 @@ fn panic(info: &PanicInfo) -> ! {
     }
 }
 
+
 #[no_mangle]
 #[export_name="_start"]
 extern fn entry() -> ! {
@@ -56,11 +58,14 @@ extern fn entry() -> ! {
         let mut serial = BOOT_KERN.serial.lock();
         *serial = Some(Serial::init());
     }
-    print!("Serial initialized!\n");
 
-    // Initialize the primitive memory manager
+    // Initialize the physical memory manager
     mm::init();
-    print!("Memory manager initialized!\n");
+
+    // Download the current bootloader. This is just a sanity check for PXE.
+    // TODO: Start writing the kernel and download the kernel! :D
+    let pxe = pxe::download(b"bootloader.0")
+        .expect("PXE download error.");
 
     panic!();
 }

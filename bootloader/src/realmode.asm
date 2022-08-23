@@ -1,3 +1,6 @@
+; Real mode routines for invoking real mode software interrupts (`invoke()`).
+; PXE API calling convention is also covered (`pxe_invoke()`).
+
 [bits 32]
 
 struc register_state
@@ -46,6 +49,7 @@ invoke:
     jmp 0x8:(.bits16 - origin)
 
 [bits 16]
+
 .bits16:
     ; Disable protected mode
     mov eax, cr0
@@ -139,6 +143,107 @@ invoke:
     pop dword [eax + register_state.edx]
     pop dword [eax + register_state.ecx]
     pop dword [eax + register_state.eax]
+
+    ; Enable protected mode
+    mov eax, cr0
+    or  eax, 1
+    mov cr0, eax
+
+    ; Set up the data selectors
+    mov ax, 0x20  ; 0x20 is the 32-bit data entry in the GDT
+    mov es, ax
+    mov ds, ax
+    mov gs, ax
+    mov fs, ax
+    mov ss, ax
+
+    ; Interrupt frame (i.e. a long jump) back to protected mode
+    pushfd                           ; EFLAGS
+    push dword 0x18                  ; CS = 32-bit code entry in the GDT
+    push dword protected_mode_return ; EIP
+    iretd
+
+[bits 32]
+
+global pxe_invoke
+
+; Call a given `pxe_opcode` PXE routine.
+; fn pxe_invoke(entry_segment: u16, entry_offset: u16, pxe_opcode: u16,
+;               parameter_segment: u16, parameter_offset: u16);
+pxe_invoke:
+    ; Disable interrupts
+    cli
+
+    ; Save the registers
+    pushad
+
+    ; Set up the data selectors
+    mov ax, 0x10 ; 0x10 is the 16-bit data entry in the GDT
+    mov es, ax
+    mov ds, ax
+    mov gs, ax
+    mov fs, ax
+    mov ss, ax
+
+    ; Start executing 16-bit instructions.
+    ; origin is defined at build time and is usually set to 0x7c00
+    jmp 0x8:(.bits16 - origin)
+
+[bits 16]
+
+.bits16:
+    ; Disable protected mode
+    mov eax, cr0
+    and eax, ~1
+    mov cr0, eax
+
+    ; Clear the data selectors
+    xor ax, ax
+    mov es, ax
+    mov ds, ax
+    mov gs, ax
+    mov fs, ax
+    mov ss, ax
+
+    ; Set up a fake interrupt frame to perform a long jump to .pxe_call.
+    ; This code is explained in the `invoke()` code above.
+    pushfd                          ; EFLAGS
+    push dword (origin >> 4)        ; CS
+    push dword (.pxe_call - origin) ; EIP
+    iretd
+
+.pxe_call:
+    ; Get the arguments passed to `pxe_invoke()`
+    movzx eax, word [esp + (4*0x9)] ; entry_segment
+    movzx ebx, word [esp + (4*0xa)] ; entry_offset
+    movzx ecx, word [esp + (4*0xb)] ; pxe_opcode
+    movzx edx, word [esp + (4*0xc)] ; parameter_segment
+    movzx esi, word [esp + (4*0xd)] ; parameter_offset
+
+    ; Set up the PXE call parameters
+    push dx
+    push si
+    push cx
+
+    ; Set up an interrupt stack frame for the return.
+    ; Once the interrupt finishes execution, this is where we are going
+    ; to return to (that is, .return - origin)
+    mov ebp, (.return - origin)
+    push cs
+    push bp
+
+    ; Execute the PXE routine
+    pushfw
+    push ax
+    push bx
+    iretw
+
+.return:
+    ; Disable the interrupt in case they have been enabled after the call
+    cli
+
+    ; Clean up the stack
+    add sp, 6
 
     ; Enable protected mode
     mov eax, cr0

@@ -20,6 +20,7 @@ dependencies = [
  "cpu",
  "range_set",
  "serial_driver",
+ "spinlock",
 ]
 
 [[package]]
