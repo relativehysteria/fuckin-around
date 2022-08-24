@@ -5,7 +5,6 @@
 
 use alloc::vec::Vec;
 use spinlock::SpinLock;
-use crate::print;
 use crate::realmode;
 use crate::realmode::pxe_invoke;
 

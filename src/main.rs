@@ -8,6 +8,7 @@ use std::path::Path;
 use std::process::Command;
 use std::fs::create_dir_all;
 use std::env::args;
+use std::error::Error;
 
 use elf_parser::ElfParser;
 
@@ -89,11 +90,12 @@ fn flatten_elf<P: AsRef<Path>>(file_path: P) -> Option<(u32, u32, Vec<u8>)> {
     Some((entry, base, flat_image))
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>>{
     // Get the paths to our working directories
     let netboot_path    = Path::new("qemu").join("netboot");
     let build_path      = Path::new("build");
     let bootloader_path = Path::new("bootloader");
+    let kernel_path     = Path::new("kernel");
 
     // If we get `clean`, remove the build directories and exit
     if args().len() == 2 && args().nth(1) == Some("clean".to_string()) {
@@ -117,7 +119,7 @@ fn main() {
         println!("\t{build_path:?} = {build:?}");
         println!("\t{bootloader_path:?} = {bootloader:?}");
         println!("\t{netboot_path:?} = {netboot:?}");
-        return;
+        return Ok(());
     }
 
     // Create the needed directories.
@@ -131,26 +133,22 @@ fn main() {
     let realmode_path = bootloader_path.join("src").join("realmode.asm");
 
     // Convert the paths to strings
-    let realmode_bin = realmode_bin.to_str()
-        .expect("Couldn't get the path to the realmode output directory");
-    let realmode_path = realmode_path.to_str()
-        .expect("Couldn't find the path to the realmode assembly.");
+    let realmode_bin = realmode_bin.to_str().unwrap();
+    let realmode_path = realmode_path.to_str().unwrap();
 
     // Assemble the realmode
     Command::new("nasm")
         .args(["-f", "elf32",
               &format!("-Dorigin=0x{STAGE0_ORIGIN:x}"),
               "-o", realmode_bin, realmode_path])
-        .status()
-        .expect("Couldn't assemble the realmode.");
+        .status()?;
 
     // Build the bootloader
     let target = "i586-unknown-linux-gnu";
     Command::new("cargo")
         .current_dir(bootloader_path)
         .args(["build", "--release"])
-        .status()
-        .expect("Couldn't build the bootloader.");
+        .status()?;
 
     // Flatten the bootloader
     let bootloader_bin = bootloader_path
@@ -169,18 +167,15 @@ fn main() {
              flat_bytes.len(), flat_bytes.len());
 
     // Write the bootloader to the build directory
-    std::fs::write(build_path.join("bootloader"), &flat_bytes)
-        .expect("Couldn't write the flat bootloader image to the file system.");
+    std::fs::write(build_path.join("bootloader"), &flat_bytes)?;
 
     // Get the path to the stage0 assembly and the assembled binary
     let stage0_bin  = build_path.clone().join("stage0");
     let stage0_path = bootloader_path.join("src").join("stage0.asm");
 
     // Convert the paths to strings
-    let stage0_bin = stage0_bin.to_str()
-        .expect("Couldn't get the path to the stage0 output directory");
-    let stage0_path = stage0_path.to_str()
-        .expect("Couldn't find the path to the stage0 assembly.");
+    let stage0_bin = stage0_bin.to_str().unwrap();
+    let stage0_path = stage0_path.to_str().unwrap();
 
     // Assemble the stage0
     Command::new("nasm")
@@ -189,12 +184,10 @@ fn main() {
               &format!("-Dbase_address=0x{flat_base:x}"),
               &format!("-Dorigin=0x{STAGE0_ORIGIN:x}"),
               "-o", stage0_bin, stage0_path])
-        .status()
-        .expect("Couldn't assemble the stage0.");
+        .status()?;
 
     // Print some info about the whole bootloader binary.
-    let bloader_meta = std::fs::metadata(stage0_bin)
-        .expect("Couldn't get the bootloader file system metadata.");
+    let bloader_meta = std::fs::metadata(stage0_bin)?;
     println!("    Whole Image Size: 0x{:x} ({})",
              bloader_meta.len(), bloader_meta.len());
 
@@ -208,6 +201,22 @@ fn main() {
     }
 
     // Copy it to the netboot directory
-    std::fs::copy(stage0_bin, netboot_path.join("bootloader.0"))
-        .expect("Couldn't copy the bootloader to the netboot directory.");
+    std::fs::copy(stage0_bin, netboot_path.join("bootloader.0"))?;
+
+    // Create the path to the kernel output directories
+    let kernel_bin = kernel_path.join("target")
+        .join("x86_64-unknown-linux-gnu")
+        .join("release")
+        .join("kernel");
+
+    // Build the kernel
+    Command::new("cargo")
+        .current_dir("kernel")
+        .args(["build", "--release"])
+        .status()?;
+
+    // Copy the kernel to the netboot directory
+    std::fs::copy(kernel_bin, netboot_path.join("kernel"))?;
+
+    Ok(())
 }

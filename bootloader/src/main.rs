@@ -62,10 +62,13 @@ extern fn entry() -> ! {
     // Initialize the physical memory manager
     mm::init();
 
-    // Download the current bootloader. This is just a sanity check for PXE.
-    // TODO: Start writing the kernel and download the kernel! :D
-    let pxe = pxe::download(b"bootloader.0")
-        .expect("PXE download error.");
+    // Download the kernel ELF image
+    let kernel = pxe::download(b"kernel").unwrap();
 
-    panic!();
+    // Validate the kernel
+    if &kernel[..4] != b"\x7FELF" {
+        panic!("Invalid kernel image.");
+    } else {
+        panic!("VALID kernel image.");
+    }
 }

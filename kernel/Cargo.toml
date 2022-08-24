@@ -1,0 +1,21 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cpu = { path = "../etc/cpu" }
+spinlock = { path = "../etc/spinlock" }
+core_reqs = { path = "../etc/core_reqs" }
+serial_driver = { path = "../etc/serial_driver" }
+boot_kern_common = { path = "../etc/boot_kern_common" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+
+[profile.dev]
+panic = "abort"
+debug = true
