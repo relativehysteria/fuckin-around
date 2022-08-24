@@ -73,29 +73,29 @@ impl<'a> ElfParser<'a> {
 
         // Get the entry point
         let entry: u64 = match bitness {
-            BITNESS_32B => get_bytes!(u32, bytes, 24usize).into(),
-            BITNESS_64B => get_bytes!(u64, bytes, 24usize).into(),
+            BITNESS_32B => get_bytes!(u32, bytes, 0x18_usize).into(),
+            BITNESS_64B => get_bytes!(u64, bytes, 0x18_usize).into(),
             ___________ => unreachable!(),
         };
 
         // Get the phdr table offset
         let phdr_off: usize = match bitness {
-            BITNESS_32B => get_bytes!(u32, bytes, 28usize).try_into().ok()?,
-            BITNESS_64B => get_bytes!(u64, bytes, 32usize).try_into().ok()?,
+            BITNESS_32B => get_bytes!(u32, bytes, 0x1C_usize).try_into().ok()?,
+            BITNESS_64B => get_bytes!(u64, bytes, 0x20_usize).try_into().ok()?,
             ___________ => unreachable!(),
         };
 
         // Get the size of a phdr table entry
         let phent_size: usize = match bitness {
-            BITNESS_32B => get_bytes!(u16, bytes, 42usize).into(),
-            BITNESS_64B => get_bytes!(u16, bytes, 52usize).into(),
+            BITNESS_32B => get_bytes!(u16, bytes, 0x2A_usize).into(),
+            BITNESS_64B => get_bytes!(u16, bytes, 0x36_usize).into(),
             ___________ => unreachable!(),
         };
 
         // Get the number of phdr table entries
         let phdr_num: usize = match bitness {
-            BITNESS_32B => get_bytes!(u16, bytes, 44usize).into(),
-            BITNESS_64B => get_bytes!(u16, bytes, 54usize).into(),
+            BITNESS_32B => get_bytes!(u16, bytes, 0x2C_usize).into(),
+            BITNESS_64B => get_bytes!(u16, bytes, 0x38_usize).into(),
             ___________ => unreachable!(),
         };
 
